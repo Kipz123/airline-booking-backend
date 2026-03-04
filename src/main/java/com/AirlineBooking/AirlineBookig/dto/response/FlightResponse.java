@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FlightResponse {
-    
+
     private Long flightId;
     private String flightNumber;
     private String origin;
@@ -22,8 +22,12 @@ public class FlightResponse {
     private FlightStatus status;
     private Integer seatCapacity;
     private Long availableSeats;
+    private Double distance;
+    private Double economyPrice;
+    private Double businessPrice;
+    private Double firstClassPrice;
     private LocalDateTime createdAt;
-    
+
     /**
      * Convert Flight entity to FlightResponse DTO
      */
@@ -38,10 +42,19 @@ public class FlightResponse {
         response.setStatus(flight.getStatus());
         response.setSeatCapacity(flight.getSeatCapacity());
         response.setAvailableSeats(availableSeats);
+        response.setDistance(flight.getDistance());
+
+        // Calculate base prices for display
+        if (flight.getDistance() != null) {
+            response.setEconomyPrice(flight.getDistance() * 100.0);
+            response.setBusinessPrice(flight.getDistance() * 125.0);
+            response.setFirstClassPrice(flight.getDistance() * 150.0);
+        }
+
         response.setCreatedAt(flight.getCreatedAt());
         return response;
     }
-    
+
     /**
      * Convert Flight entity to FlightResponse DTO (without available seats count)
      */
@@ -55,6 +68,14 @@ public class FlightResponse {
         response.setArrivalTime(flight.getArrivalTime());
         response.setStatus(flight.getStatus());
         response.setSeatCapacity(flight.getSeatCapacity());
+        response.setDistance(flight.getDistance());
+
+        if (flight.getDistance() != null) {
+            response.setEconomyPrice(flight.getDistance() * 100.0);
+            response.setBusinessPrice(flight.getDistance() * 125.0);
+            response.setFirstClassPrice(flight.getDistance() * 150.0);
+        }
+
         response.setCreatedAt(flight.getCreatedAt());
         return response;
     }

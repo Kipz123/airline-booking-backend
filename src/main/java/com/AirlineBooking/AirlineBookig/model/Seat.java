@@ -9,35 +9,38 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "seats", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"flight_id", "seat_number"})
+        @UniqueConstraint(columnNames = { "flight_id", "seat_number" })
 })
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Seat {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "seat_id")
     private Long seatId;
-    
+
     @NotBlank(message = "Seat number is required")
     @Column(name = "seat_number", nullable = false, length = 10)
     private String seatNumber;
-    
+
     @Enumerated(EnumType.STRING)
     @Column(name = "cabin_class", nullable = false, length = 20)
     private CabinClass cabinClass = CabinClass.ECONOMY;
-    
+
     @Enumerated(EnumType.STRING)
     @Column(name = "booking_status", nullable = false, length = 20)
     private BookingStatus bookingStatus = BookingStatus.AVAILABLE;
-    
+
+    @Column(name = "price", nullable = false)
+    private Double price = 0.0;
+
     @NotNull(message = "Flight is required")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "flight_id", nullable = false)
     private Flight flight;
-    
+
     @OneToOne(mappedBy = "seat")
     private Reservation reservation;
 }

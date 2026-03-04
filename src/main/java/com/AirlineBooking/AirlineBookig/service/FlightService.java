@@ -1,7 +1,5 @@
 package com.AirlineBooking.AirlineBookig.service;
 
-
-
 import com.AirlineBooking.AirlineBookig.model.*;
 import com.AirlineBooking.AirlineBookig.repository.FlightRepository;
 import com.AirlineBooking.AirlineBookig.repository.SeatRepository;
@@ -30,8 +28,8 @@ public class FlightService {
      */
     @Transactional
     public Flight createFlight(String flightNumber, String origin, String destination,
-                               LocalDateTime departureTime, LocalDateTime arrivalTime,
-                               Integer seatCapacity) {
+            LocalDateTime departureTime, LocalDateTime arrivalTime,
+            Integer seatCapacity, Double distance) {
         // Check if flight number already exists
         if (flightRepository.existsByFlightNumber(flightNumber)) {
             throw new RuntimeException("Flight number already exists");
@@ -50,12 +48,13 @@ public class FlightService {
         flight.setDepartureTime(departureTime);
         flight.setArrivalTime(arrivalTime);
         flight.setSeatCapacity(seatCapacity);
+        flight.setDistance(distance);
         flight.setStatus(FlightStatus.SCHEDULED);
 
         Flight savedFlight = flightRepository.save(flight);
 
         // Generate seats for the flight
-        generateSeatsForFlight(savedFlight, seatCapacity);
+        generateSeatsForFlight(savedFlight, seatCapacity, distance);
 
         return savedFlight;
     }
@@ -63,12 +62,12 @@ public class FlightService {
     /**
      * Generate seats for a flight
      */
-    private void generateSeatsForFlight(Flight flight, Integer capacity) {
+    private void generateSeatsForFlight(Flight flight, Integer capacity, Double distance) {
         List<Seat> seats = new ArrayList<>();
 
         // Generate seats (e.g., A1, A2, B1, B2, etc.)
         int seatsPerRow = 6; // A, B, C, D, E, F
-        char[] seatLetters = {'A', 'B', 'C', 'D', 'E', 'F'};
+        char[] seatLetters = { 'A', 'B', 'C', 'D', 'E', 'F' };
 
         for (int i = 0; i < capacity; i++) {
             int row = (i / seatsPerRow) + 1;
@@ -80,13 +79,16 @@ public class FlightService {
             seat.setFlight(flight);
             seat.setBookingStatus(BookingStatus.AVAILABLE);
 
-            // Assign cabin class based on row
+            // Assign cabin class and calculate price based on row and distance
             if (row <= 2) {
                 seat.setCabinClass(CabinClass.FIRST);
+                seat.setPrice(distance * 150.0);
             } else if (row <= 5) {
                 seat.setCabinClass(CabinClass.BUSINESS);
+                seat.setPrice(distance * 125.0);
             } else {
                 seat.setCabinClass(CabinClass.ECONOMY);
+                seat.setPrice(distance * 100.0);
             }
 
             seats.add(seat);
@@ -137,13 +139,17 @@ public class FlightService {
      */
     @Transactional
     public Flight updateFlight(Long flightId, String origin, String destination,
-                               LocalDateTime departureTime, LocalDateTime arrivalTime) {
+            LocalDateTime departureTime, LocalDateTime arrivalTime) {
         Flight flight = getFlightById(flightId);
 
-        if (origin != null) flight.setOrigin(origin);
-        if (destination != null) flight.setDestination(destination);
-        if (departureTime != null) flight.setDepartureTime(departureTime);
-        if (arrivalTime != null) flight.setArrivalTime(arrivalTime);
+        if (origin != null)
+            flight.setOrigin(origin);
+        if (destination != null)
+            flight.setDestination(destination);
+        if (departureTime != null)
+            flight.setDepartureTime(departureTime);
+        if (arrivalTime != null)
+            flight.setArrivalTime(arrivalTime);
 
         // Validate times
         if (flight.getArrivalTime().isBefore(flight.getDepartureTime())) {

@@ -46,13 +46,12 @@ public class AdminController {
                     request.getDestination(),
                     request.getDepartureTime(),
                     request.getArrivalTime(),
-                    request.getSeatCapacity()
-            );
+                    request.getSeatCapacity(),
+                    request.getDistance());
 
             FlightResponse response = FlightResponse.fromEntity(
-                    flight, 
-                    flightService.getAvailableSeatCount(flight.getFlightId())
-            );
+                    flight,
+                    flightService.getAvailableSeatCount(flight.getFlightId()));
 
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponse.success("Flight created successfully", response));
@@ -76,13 +75,11 @@ public class AdminController {
                     request.getOrigin(),
                     request.getDestination(),
                     request.getDepartureTime(),
-                    request.getArrivalTime()
-            );
+                    request.getArrivalTime());
 
             FlightResponse response = FlightResponse.fromEntity(
-                    flight, 
-                    flightService.getAvailableSeatCount(id)
-            );
+                    flight,
+                    flightService.getAvailableSeatCount(id));
 
             return ResponseEntity.ok(ApiResponse.success("Flight updated successfully", response));
         } catch (Exception e) {
@@ -100,7 +97,7 @@ public class AdminController {
         try {
             Flight flight = flightService.cancelFlight(id);
             FlightResponse response = FlightResponse.fromEntity(flight);
-            
+
             return ResponseEntity.ok(ApiResponse.success("Flight cancelled successfully", response));
         } catch (Exception e) {
             return ResponseEntity.badRequest()
@@ -134,7 +131,7 @@ public class AdminController {
             List<ReservationResponse> response = reservations.stream()
                     .map(ReservationResponse::fromEntity)
                     .collect(Collectors.toList());
-            
+
             return ResponseEntity.ok(ApiResponse.success("Reservations retrieved", response));
         } catch (Exception e) {
             return ResponseEntity.badRequest()
@@ -149,8 +146,12 @@ public class AdminController {
     @GetMapping("/reservations")
     public ResponseEntity<?> getAllReservations() {
         try {
-            // This would need a method in ReservationService to get all reservations
-            return ResponseEntity.ok(ApiResponse.success("Feature coming soon"));
+            List<Reservation> reservations = reservationService.getAllReservations();
+            List<ReservationResponse> response = reservations.stream()
+                    .map(ReservationResponse::fromEntity)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(ApiResponse.success("Reservations retrieved", response));
         } catch (Exception e) {
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error(e.getMessage()));

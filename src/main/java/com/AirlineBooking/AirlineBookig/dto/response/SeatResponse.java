@@ -11,14 +11,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SeatResponse {
-    
+
     private Long seatId;
     private String seatNumber;
     private CabinClass cabinClass;
     private BookingStatus bookingStatus;
+    private Double price;
     private Long flightId;
     private String flightNumber;
-    
+
     /**
      * Convert Seat entity to SeatResponse DTO
      */
@@ -28,6 +29,7 @@ public class SeatResponse {
         response.setSeatNumber(seat.getSeatNumber());
         response.setCabinClass(seat.getCabinClass());
         response.setBookingStatus(seat.getBookingStatus());
+        response.setPrice(seat.getPrice());
         response.setFlightId(seat.getFlight().getFlightId());
         response.setFlightNumber(seat.getFlight().getFlightNumber());
         return response;

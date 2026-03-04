@@ -1,7 +1,5 @@
 package com.AirlineBooking.AirlineBookig.service;
 
-
-
 import com.AirlineBooking.AirlineBookig.model.*;
 import com.AirlineBooking.AirlineBookig.repository.ReservationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +17,8 @@ public class ReservationService {
 
     @Autowired
     public ReservationService(ReservationRepository reservationRepository,
-                              SeatService seatService,
-                              FlightService flightService) {
+            SeatService seatService,
+            FlightService flightService) {
         this.reservationRepository = reservationRepository;
         this.seatService = seatService;
         this.flightService = flightService;
@@ -114,6 +112,24 @@ public class ReservationService {
     }
 
     /**
+     * Checkout successful, mark reservation as PAID
+     */
+    @Transactional
+    public Reservation checkoutReservation(Long reservationId, Long userId) {
+        Reservation reservation = getReservationByIdAndUserId(reservationId, userId);
+
+        if (reservation.getStatus() == ReservationStatus.CANCELLED) {
+            throw new RuntimeException("Cannot checkout a cancelled reservation");
+        }
+        if (reservation.getStatus() == ReservationStatus.PAID) {
+            throw new RuntimeException("Reservation is already paid");
+        }
+
+        reservation.setStatus(ReservationStatus.PAID);
+        return reservationRepository.save(reservation);
+    }
+
+    /**
      * Get all reservations for a flight
      */
     public List<Reservation> getFlightReservations(Long flightId) {
@@ -142,17 +158,24 @@ public class ReservationService {
     }
 
     /**
+     * Get all reservations (Admin only)
+     */
+    public List<Reservation> getAllReservations() {
+        return reservationRepository.findAll();
+    }
+
+    /**
      * Delete a reservation (Admin only)
      */
     @Transactional
     public void deleteReservation(Long reservationId) {
         Reservation reservation = getReservationById(reservationId);
-        
+
         // Release seat if reservation was confirmed
         if (reservation.getStatus() == ReservationStatus.CONFIRMED) {
             seatService.releaseSeat(reservation.getSeat().getSeatId());
         }
-        
+
         reservationRepository.delete(reservation);
     }
 }

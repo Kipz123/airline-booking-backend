@@ -13,23 +13,27 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FlightRequest {
-    
+
     @NotBlank(message = "Flight number is required")
     private String flightNumber;
-    
+
     @NotBlank(message = "Origin is required")
     private String origin;
-    
+
     @NotBlank(message = "Destination is required")
     private String destination;
-    
+
     @NotNull(message = "Departure time is required")
     private LocalDateTime departureTime;
-    
+
     @NotNull(message = "Arrival time is required")
     private LocalDateTime arrivalTime;
-    
+
     @NotNull(message = "Seat capacity is required")
     @Positive(message = "Seat capacity must be positive")
     private Integer seatCapacity;
+
+    @NotNull(message = "Distance is required")
+    @Positive(message = "Distance must be positive")
+    private Double distance;
 }

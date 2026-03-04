@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReservationResponse {
-    
+
     private Long reservationId;
     private Long userId;
     private String userName;
@@ -28,23 +28,24 @@ public class ReservationResponse {
     private String cabinClass;
     private ReservationStatus status;
     private LocalDateTime reservationDate;
-    
+    private Double price;
+
     /**
      * Convert Reservation entity to ReservationResponse DTO
      */
     public static ReservationResponse fromEntity(Reservation reservation) {
         ReservationResponse response = new ReservationResponse();
-        
+
         // Reservation details
         response.setReservationId(reservation.getReservationId());
         response.setStatus(reservation.getStatus());
         response.setReservationDate(reservation.getReservationDate());
-        
+
         // User details
         response.setUserId(reservation.getUser().getUserId());
         response.setUserName(reservation.getUser().getName());
         response.setUserEmail(reservation.getUser().getEmail());
-        
+
         // Flight details
         response.setFlightId(reservation.getFlight().getFlightId());
         response.setFlightNumber(reservation.getFlight().getFlightNumber());
@@ -52,12 +53,13 @@ public class ReservationResponse {
         response.setDestination(reservation.getFlight().getDestination());
         response.setDepartureTime(reservation.getFlight().getDepartureTime());
         response.setArrivalTime(reservation.getFlight().getArrivalTime());
-        
+
         // Seat details
         response.setSeatId(reservation.getSeat().getSeatId());
         response.setSeatNumber(reservation.getSeat().getSeatNumber());
         response.setCabinClass(reservation.getSeat().getCabinClass().name());
-        
+        response.setPrice(reservation.getSeat().getPrice());
+
         return response;
     }
 }
