@@ -5,7 +5,9 @@ import com.AirlineBooking.AirlineBookig.repository.ReservationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.scheduling.annotation.Scheduled;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -33,6 +35,9 @@ public class ReservationService {
         Flight flight = flightService.getFlightById(flightId);
         if (flight.getStatus() != FlightStatus.SCHEDULED) {
             throw new RuntimeException("Flight is not available for booking");
+        }
+        if (flight.getDepartureTime().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Cannot book a flight that has already departed");
         }
 
         // Validate seat exists and is available
@@ -115,7 +120,7 @@ public class ReservationService {
      * Checkout successful, mark reservation as PAID
      */
     @Transactional
-    public Reservation checkoutReservation(Long reservationId, Long userId) {
+    public Reservation checkoutReservation(Long reservationId, Long userId, Integer pointsToRedeem) {
         Reservation reservation = getReservationByIdAndUserId(reservationId, userId);
 
         if (reservation.getStatus() == ReservationStatus.CANCELLED) {
@@ -125,8 +130,57 @@ public class ReservationService {
             throw new RuntimeException("Reservation is already paid");
         }
 
+        User user = reservation.getUser();
+        // Handle point redemption
+        if (pointsToRedeem != null && pointsToRedeem > 0) {
+            if (user.getAvailablePoints() < pointsToRedeem) {
+                throw new RuntimeException("Insufficient points to redeem");
+            }
+            user.setAvailablePoints(user.getAvailablePoints() - pointsToRedeem);
+        }
+
         reservation.setStatus(ReservationStatus.PAID);
         return reservationRepository.save(reservation);
+    }
+
+    /**
+     * Request a refund for a paid reservation
+     */
+    @Transactional
+    public Reservation requestRefund(Long reservationId, Long userId) {
+        Reservation reservation = getReservationByIdAndUserId(reservationId, userId);
+
+        if (reservation.getStatus() != ReservationStatus.PAID) {
+            throw new RuntimeException("Only PAID reservations can be refunded");
+        }
+        if (reservation.getFlight().getDepartureTime().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Cannot refund a flight that has already departed");
+        }
+
+        reservation.setStatus(ReservationStatus.REFUND_PENDING);
+        reservation.setRefundRequestDate(LocalDateTime.now());
+
+        // Release the seat
+        seatService.releaseSeat(reservation.getSeat().getSeatId());
+
+        return reservationRepository.save(reservation);
+    }
+
+    /**
+     * Process pending refunds older than a specific time
+     */
+    @Transactional
+    public void processPendingRefunds() {
+        LocalDateTime cutoffTime = LocalDateTime.now().minusHours(2);
+        List<Reservation> pendingRefunds = reservationRepository
+                .findByStatusAndRefundRequestDateBefore(ReservationStatus.REFUND_PENDING, cutoffTime);
+
+        for (Reservation refund : pendingRefunds) {
+            refund.setStatus(ReservationStatus.REFUNDED);
+            reservationRepository.save(refund);
+            // In a real application, we would call the payment gateway to issue the
+            // monetary refund here
+        }
     }
 
     /**
@@ -177,5 +231,45 @@ public class ReservationService {
         }
 
         reservationRepository.delete(reservation);
+    }
+
+    /**
+     * Process points for departed flights
+     */
+    @Transactional
+    @Scheduled(fixedRate = 300000) // Runs every 5 minutes
+    public void processDeparturePoints() {
+        LocalDateTime now = LocalDateTime.now();
+        List<Reservation> actionable = reservationRepository.findUnawardedDepartedReservations(ReservationStatus.PAID,
+                now);
+
+        for (Reservation res : actionable) {
+            User user = res.getUser();
+            Flight flight = res.getFlight();
+            int pointsEarned = flight.getDistance() != null ? flight.getDistance().intValue() : 0;
+
+            user.setTotalMiles(user.getTotalMiles() + pointsEarned);
+            user.setAvailablePoints(user.getAvailablePoints() + pointsEarned);
+
+            res.setPointsAwarded(true);
+            reservationRepository.save(res);
+        }
+    }
+
+    /**
+     * Automatically cancel CONFIRMED reservations if flight departs unpaid
+     */
+    @Transactional
+    @Scheduled(fixedRate = 60000) // Runs every minute
+    public void cancelUnpaidDepartedReservations() {
+        LocalDateTime now = LocalDateTime.now();
+        List<Reservation> actionable = reservationRepository.findUnpaidDepartedReservations(ReservationStatus.CONFIRMED,
+                now);
+
+        for (Reservation res : actionable) {
+            res.setStatus(ReservationStatus.CANCELLED);
+            seatService.releaseSeat(res.getSeat().getSeatId());
+            reservationRepository.save(res);
+        }
     }
 }

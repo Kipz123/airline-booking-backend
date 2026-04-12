@@ -7,9 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
-
-
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -18,32 +15,38 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Reservation {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "reservation_id")
     private Long reservationId;
-    
+
     @NotNull(message = "User is required")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-    
+
     @NotNull(message = "Flight is required")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "flight_id", nullable = false)
     private Flight flight;
-    
+
     @NotNull(message = "Seat is required")
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seat_id", nullable = false)
     private Seat seat;
-    
+
     @CreationTimestamp
     @Column(name = "reservation_date", nullable = false, updatable = false)
     private LocalDateTime reservationDate;
-    
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private ReservationStatus status = ReservationStatus.CONFIRMED;
+
+    @Column(name = "refund_request_date")
+    private LocalDateTime refundRequestDate;
+
+    @Column(name = "points_awarded", nullable = false)
+    private boolean pointsAwarded = false;
 }

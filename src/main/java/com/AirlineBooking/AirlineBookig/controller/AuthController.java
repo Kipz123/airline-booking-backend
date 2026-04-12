@@ -34,14 +34,12 @@ public class AuthController {
             User user = authService.registerUser(
                     request.getName(),
                     request.getEmail(),
-                    request.getPassword()
-            );
+                    request.getPassword());
 
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponse.success(
                             "User registered successfully",
-                            user
-                    ));
+                            user));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error(e.getMessage()));
@@ -58,14 +56,12 @@ public class AuthController {
             User user = authService.registerAdmin(
                     request.getName(),
                     request.getEmail(),
-                    request.getPassword()
-            );
+                    request.getPassword());
 
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponse.success(
                             "Admin registered successfully",
-                            user
-                    ));
+                            user));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error(e.getMessage()));
@@ -87,8 +83,10 @@ public class AuthController {
                     user.getUserId(),
                     user.getName(),
                     user.getEmail(),
-                    user.getRole().name()
-            );
+                    user.getRole().name(),
+                    user.getTotalMiles(),
+                    user.getAvailablePoints(),
+                    user.getLoyaltyTier());
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -116,6 +114,34 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.error("Invalid token"));
+        }
+    }
+
+    /**
+     * Get current user profile
+     * GET /api/auth/me
+     */
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = authHeader.substring(7); // Remove "Bearer " prefix
+            String email = authService.getEmailFromToken(token);
+            User user = authService.getUserByEmail(email);
+
+            AuthResponse response = new AuthResponse(
+                    token,
+                    user.getUserId(),
+                    user.getName(),
+                    user.getEmail(),
+                    user.getRole().name(),
+                    user.getTotalMiles(),
+                    user.getAvailablePoints(),
+                    user.getLoyaltyTier());
+
+            return ResponseEntity.ok(ApiResponse.success("User fetched successfully", response));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("Invalid token or user not found"));
         }
     }
 }

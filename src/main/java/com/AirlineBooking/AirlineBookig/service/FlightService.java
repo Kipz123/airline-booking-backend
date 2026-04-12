@@ -39,6 +39,9 @@ public class FlightService {
         if (arrivalTime.isBefore(departureTime)) {
             throw new RuntimeException("Arrival time must be after departure time");
         }
+        if (departureTime.isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Departure time cannot be in the past");
+        }
 
         // Create flight
         Flight flight = new Flight();
@@ -154,6 +157,9 @@ public class FlightService {
         // Validate times
         if (flight.getArrivalTime().isBefore(flight.getDepartureTime())) {
             throw new RuntimeException("Arrival time must be after departure time");
+        }
+        if (flight.getDepartureTime().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Departure time cannot be in the past");
         }
 
         return flightRepository.save(flight);

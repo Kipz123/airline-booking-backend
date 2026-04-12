@@ -48,8 +48,7 @@ public class ReservationController {
             Reservation reservation = reservationService.createReservation(
                     user,
                     request.getFlightId(),
-                    request.getSeatId()
-            );
+                    request.getSeatId());
 
             ReservationResponse response = ReservationResponse.fromEntity(reservation);
 
@@ -75,7 +74,7 @@ public class ReservationController {
             List<ReservationResponse> response = reservations.stream()
                     .map(ReservationResponse::fromEntity)
                     .collect(Collectors.toList());
-            
+
             return ResponseEntity.ok(ApiResponse.success("Reservations retrieved", response));
         } catch (Exception e) {
             return ResponseEntity.badRequest()
@@ -97,7 +96,7 @@ public class ReservationController {
 
             Reservation reservation = reservationService.getReservationByIdAndUserId(id, user.getUserId());
             ReservationResponse response = ReservationResponse.fromEntity(reservation);
-            
+
             return ResponseEntity.ok(ApiResponse.success("Reservation retrieved", response));
         } catch (Exception e) {
             return ResponseEntity.badRequest()
@@ -119,8 +118,30 @@ public class ReservationController {
 
             Reservation reservation = reservationService.cancelReservation(id, user.getUserId());
             ReservationResponse response = ReservationResponse.fromEntity(reservation);
-            
+
             return ResponseEntity.ok(ApiResponse.success("Reservation cancelled successfully", response));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
+    /**
+     * Request a refund for a paid reservation
+     * POST /api/reservations/{id}/refund
+     */
+    @PostMapping("/{id}/refund")
+    public ResponseEntity<?> requestRefund(
+            @PathVariable Long id,
+            Authentication authentication) {
+        try {
+            String email = authentication.getName();
+            User user = authService.getUserByEmail(email);
+
+            Reservation reservation = reservationService.requestRefund(id, user.getUserId());
+            ReservationResponse response = ReservationResponse.fromEntity(reservation);
+
+            return ResponseEntity.ok(ApiResponse.success("Refund requested successfully", response));
         } catch (Exception e) {
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error(e.getMessage()));

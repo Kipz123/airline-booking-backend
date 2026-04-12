@@ -29,6 +29,7 @@ public class ReservationResponse {
     private ReservationStatus status;
     private LocalDateTime reservationDate;
     private Double price;
+    private LocalDateTime refundRequestDate;
 
     /**
      * Convert Reservation entity to ReservationResponse DTO
@@ -40,6 +41,7 @@ public class ReservationResponse {
         response.setReservationId(reservation.getReservationId());
         response.setStatus(reservation.getStatus());
         response.setReservationDate(reservation.getReservationDate());
+        response.setRefundRequestDate(reservation.getRefundRequestDate());
 
         // User details
         response.setUserId(reservation.getUser().getUserId());

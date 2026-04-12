@@ -8,6 +8,7 @@ import com.AirlineBooking.AirlineBookig.model.Flight;
 import com.AirlineBooking.AirlineBookig.model.Reservation;
 import com.AirlineBooking.AirlineBookig.service.FlightService;
 import com.AirlineBooking.AirlineBookig.service.ReservationService;
+import com.AirlineBooking.AirlineBookig.service.AnalyticsService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,11 +27,14 @@ public class AdminController {
 
     private final FlightService flightService;
     private final ReservationService reservationService;
+    private final AnalyticsService analyticsService;
 
     @Autowired
-    public AdminController(FlightService flightService, ReservationService reservationService) {
+    public AdminController(FlightService flightService, ReservationService reservationService,
+            AnalyticsService analyticsService) {
         this.flightService = flightService;
         this.reservationService = reservationService;
+        this.analyticsService = analyticsService;
     }
 
     /**
@@ -152,6 +156,20 @@ public class AdminController {
                     .collect(Collectors.toList());
 
             return ResponseEntity.ok(ApiResponse.success("Reservations retrieved", response));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
+    /**
+     * Get analytics data (revenue and activities)
+     * GET /api/admin/analytics
+     */
+    @GetMapping("/analytics")
+    public ResponseEntity<?> getAnalytics() {
+        try {
+            return ResponseEntity.ok(ApiResponse.success("Analytics retrieved", analyticsService.getAnalytics()));
         } catch (Exception e) {
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error(e.getMessage()));

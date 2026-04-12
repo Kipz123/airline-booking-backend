@@ -55,7 +55,9 @@ public class CheckoutController {
                     paymentRequest.getPaymentMethod(), paymentRequest.getAmount(), paymentRequest.getTransactionId());
 
             // 1. Mark reservation as paid
-            Reservation reservation = reservationService.checkoutReservation(reservationId, user.getUserId());
+            Integer pointsToRedeem = paymentRequest.getPointsToRedeem();
+            Reservation reservation = reservationService.checkoutReservation(reservationId, user.getUserId(),
+                    pointsToRedeem);
 
             // 2. Generate PDF ticket
             byte[] pdfBytes = pdfTicketService.generateTicketPdf(reservation);

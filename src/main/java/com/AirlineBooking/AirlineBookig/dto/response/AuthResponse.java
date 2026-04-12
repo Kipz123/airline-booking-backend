@@ -8,14 +8,29 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuthResponse {
-    
+
     private String token;
     private String type = "Bearer";
     private Long userId;
     private String name;
     private String email;
     private String role;
-    
+    private Integer totalMiles;
+    private Integer availablePoints;
+    private String loyaltyTier;
+
+    public AuthResponse(String token, Long userId, String name, String email, String role, Integer totalMiles,
+            Integer availablePoints, String loyaltyTier) {
+        this.token = token;
+        this.userId = userId;
+        this.name = name;
+        this.email = email;
+        this.role = role;
+        this.totalMiles = totalMiles;
+        this.availablePoints = availablePoints;
+        this.loyaltyTier = loyaltyTier;
+    }
+
     public AuthResponse(String token, Long userId, String name, String email, String role) {
         this.token = token;
         this.userId = userId;

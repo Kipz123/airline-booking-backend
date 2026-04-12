@@ -17,4 +17,5 @@ public class PaymentRequest {
     private String paymentMethod;
 
     // Additional fields from the frontend payment report can be added here
+    private Integer pointsToRedeem;
 }
